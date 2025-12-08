@@ -3,10 +3,12 @@ import numpy as np
 from gensim.models import Word2Vec
 from tensorflow.keras.models import load_model
 import re
-import nltk
-from nltk.tokenize import word_tokenize, sent_tokenize
-from nltk.corpus import stopwords
-stop_words = set(stopwords.words("english"))
+
+stop_words = {
+    "a","an","the","and","or","but","if","is","are","was","were","am",
+    "this","that","to","of","in","on","for","with","as","at","by","from"
+}
+
 
 
 model = load_model("sentiment_rnn_model.h5")
@@ -14,7 +16,7 @@ w2v_model = Word2Vec.load("word2vec.model")
 
 app=Flask(__name__)
 
-MAX_LEN = 20
+MAX_LEN = 30
 VECTOR_SIZE = 100
 
 
