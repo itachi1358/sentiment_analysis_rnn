@@ -3,6 +3,7 @@ import numpy as np
 from gensim.models import Word2Vec
 from tensorflow.keras.models import load_model
 import re
+import os
 
 stop_words = {
     "a","an","the","and","or","but","if","is","are","was","were","am",
@@ -69,5 +70,6 @@ def predict():
     })
 
 
-if __name__=="__main__":
-    app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
