@@ -1,4 +1,4 @@
-from flask import Flask,request,jsonify
+from flask import Flask,request,jsonify, render_template
 import numpy as np
 from gensim.models import Word2Vec
 from tensorflow.keras.models import load_model
