@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sentiment Analysis | RNN + Word2Vec</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --border: #1f2933;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --positive: #22c55e;
+      --negative: #ef4444;
+      --accent: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #020617, var(--bg));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      background: linear-gradient(180deg, #020617 0%, var(--card) 100%);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 0 40px rgba(15, 23, 42, 0.8);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 28px;
+      font-size: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      resize: none;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+
+    textarea::placeholder {
+      color: var(--muted);
+    }
+
+    button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: white;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    button:disabled {
+      background: #374151;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .result-card {
+      margin-top: 28px;
+      padding: 20px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #020617;
+      display: none;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .label {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .confidence {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .meter {
+      margin-top: 8px;
+      height: 10px;
+      width: 100%;
+      border-radius: 999px;
+      background: #111827;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .meter-bar {
+      height: 100%;
+      width: 0%;
+      transition: width 0.6s ease;
+    }
+
+    .positive {
+      color: var(--positive);
+    }
+
+    .negative {
+      color: var(--negative);
+    }
+
+    .footer {
+      margin-top: 32px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 4px solid #1f2933;
+      border-top: 4px solid var(--accent);
+      border-radius: 50%;
+      margin: 20px auto 0;
+      animation: spin 0.9s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Sentiment Analysis</h1>
+    <div class="subtitle">
+      Word2Vec + SimpleRNN · Deployed on Hugging Face
+    </div>
+
+    <textarea id="review" placeholder="Type your movie review here..."></textarea>
+    <button id="analyzeBtn">Analyze Sentiment</button>
+
+    <div class="spinner" id="spinner"></div>
+
+    <div class="result-card" id="resultCard">
+      <div class="result-header">
+        <div id="sentimentLabel" class="label"></div>
+        <div id="confidenceText" class="confidence"></div>
+      </div>
+
+      <div class="meter">
+        <div id="meterBar" class="meter-bar"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Deep Learning NLP Project · RNN + Word2Vec · Arshad
+    </div>
+  </div>
+
+  <!-- ✅ Official Gradio Client -->
+  <script type="module">
+    import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+    const button = document.getElementById("analyzeBtn");
+    const textarea = document.getElementById("review");
+    const spinner = document.getElementById("spinner");
+    const resultCard = document.getElementById("resultCard");
+    const sentimentLabel = document.getElementById("sentimentLabel");
+    const confidenceText = document.getElementById("confidenceText");
+    const meterBar = document.getElementById("meterBar");
+
+    button.addEventListener("click", async () => {
+      const text = textarea.value.trim();
+
+      if (!text) {
+        alert("Please enter a review first.");
+        return;
+      }
+
+      button.disabled = true;
+      spinner.style.display = "block";
+      resultCard.style.display = "none";
+
+      try {
+        const client = await Client.connect("arshad006/sentiment_analysis");
+
+        const result = await client.predict("/predict_sentiment", {
+          text: text
+        });
+
+        const [label, score] = result.data;
+
+        const percentage = Math.round(score * 100);
+
+        sentimentLabel.textContent = label;
+        confidenceText.textContent = `Confidence: ${percentage}%`;
+
+        if (label.toLowerCase().includes("positive")) {
+          sentimentLabel.className = "label positive";
+          meterBar.style.background = "linear-gradient(90deg, #16a34a, #22c55e)";
+        } else {
+          sentimentLabel.className = "label negative";
+          meterBar.style.background = "linear-gradient(90deg, #dc2626, #ef4444)";
+        }
+
+        meterBar.style.width = `${percentage}%`;
+        resultCard.style.display = "block";
+
+      } catch (err) {
+        alert("API Error: " + err.message);
+        console.error(err);
+      } finally {
+        spinner.style.display = "none";
+        button.disabled = false;
+      }
+    });
+  </script>
+
+</body>
+</html>
