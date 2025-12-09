@@ -179,7 +179,7 @@
   <div class="container">
     <h1>Sentiment Analysis</h1>
     <div class="subtitle">
-      Word2Vec + SimpleRNN · Deployed on Hugging Face
+      Word2Vec + SimpleRNN · Deployed API on Hugging Face
     </div>
 
     <textarea id="review" placeholder="Type your movie review here..."></textarea>
@@ -239,7 +239,7 @@
         const percentage = Math.round(score * 100);
 
         sentimentLabel.textContent = label;
-        confidenceText.textContent = `Confidence: ${percentage}%`;
+        confidenceText.textContent = `Score: ${percentage}%`;
 
         if (label.toLowerCase().includes("positive")) {
           sentimentLabel.className = "label positive";
@@ -264,3 +264,4 @@
 
 </body>
 </html>
+
