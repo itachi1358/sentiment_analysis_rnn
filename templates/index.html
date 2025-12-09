@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sentiment Analysis</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card {
+            background: white;
+            width: 60%;
+            height 60%:
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            text-align: center;
+            
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #2c5364;
+        }
+
+        textarea {
+            width: 80%;
+            height: 20%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            resize: none;
+        }
+
+        button {
+            margin-top: 18px;
+            padding: 12px 30px;
+            font-size: 16px;
+            background: #2c5364;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #0f2027;
+        }
+
+        .result-box {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f4f4f4;
+        }
+
+        .positive {
+            color: green;
+            font-weight: bold;
+        }
+
+        .negative {
+            color: red;
+            font-weight: bold;
+        }
+
+        .bar-container {
+            width: 100%;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .bar {
+            height: 20px;
+            width: 0%;
+            transition: width 0.7s ease;
+        }
+
+        .bar.positive {
+            background: linear-gradient(90deg, #00b09b, #96c93d);
+        }
+
+        .bar.negative {
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+        }
+
+        .footer {
+            margin-top: 25px;
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+
+    <h1>Sentiment Analysis</h1>
+
+    <form method="POST">
+        <textarea name="review" placeholder="Type your review here..." required>{{ user_text }}</textarea>
+        <br>
+        <button type="submit">Analyze Sentiment</button>
+    </form>
+
+    {% if prediction %}
+    <div class="result-box">
+        <h2>
+            Prediction:
+            {% if "Positive" in prediction %}
+                <span class="positive">{{ prediction }}</span>
+            {% else %}
+                <span class="negative">{{ prediction }}</span>
+            {% endif %}
+        </h2>
+
+        <p><strong>Confidence:</strong> {{ confidence }}%</p>
+
+        <!-- Sentiment Bar -->
+        <div class="bar-container">
+            <div class="bar 
+                {% if "Positive" in prediction %}
+                    positive
+                {% else %}
+                    negative
+                {% endif %}
+            "
+            style="width: {{ confidence }}%;">
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        Powered by Word2Vec + RNN | Flask ML App
+    </div>
+
+</div>
+
+</body>
+</html>
