@@ -5,6 +5,11 @@ from tensorflow.keras.models import load_model
 import re
 import os
 
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
+
 stop_words = {
     "a","an","the","and","or","but","if","is","are","was","were","am",
     "this","that","to","of","in","on","for","with","as","at","by","from"
