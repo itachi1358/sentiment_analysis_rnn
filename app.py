@@ -44,31 +44,32 @@ def review_to_vectors(review):
 
     return np.array(vectors[:MAX_LEN])
 
-@app.route("/", methods=["GET"])
+
+@app.route("/", methods=["GET", "POST"])
 def home():
-    return jsonify({"status": "Sentiment API is running"})
+    prediction = None
+    confidence = None
+    user_text = ""
 
-@app.route("/predict", methods=["POST"])
-def predict():
-    data = request.get_json()                  # Read JSON body from POST request
+    if request.method == "POST":
+        user_text = request.form["review"]
 
-    if not data or "review" not in data:
-        return jsonify({"error": "Missing 'review' field"}), 400
-    
-    review = review_tokenize(data["review"])                    # Must be a list of tokens
+        tokens = review_tokenize(user_text)
+        vec = review_to_vectors(tokens)
+        vec = vec.reshape(1, MAX_LEN, VECTOR_SIZE)
 
-    
-    vec = review_to_vectors(review)            # Convert → (30, 100)
-    vec = vec.reshape(1, MAX_LEN, VECTOR_SIZE) # Reshape → (1, 30, 100)
+        prob = float(model.predict(vec)[0][0])
+        label = 1 if prob >= 0.45 else 0
 
-    prob = float(model.predict(vec)[0][0])     # Get prediction probability
-    label = 1 if prob >= 0.5 else 0             # Convert to binary label
+        prediction = "Positive ✅" if label == 1 else "Negative ❌"
+        confidence = round(prob * 100, 2)
 
-    return jsonify({
-        "prediction": label,
-        "score": prob
-    })
-
+    return render_template(
+        "index.html",
+        prediction=prediction,
+        confidence=confidence,
+        user_text=user_text
+    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
